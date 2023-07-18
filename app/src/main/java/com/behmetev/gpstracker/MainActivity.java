@@ -11,7 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements LocListenerInterface {
@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements LocListenerInterf
     private int distance;
     private MyLocListener myLocListener;
     private LocationManager locationManager;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements LocListenerInterf
         tvVelocity = findViewById(R.id.tvVelocity);
         tvDistance = findViewById(R.id.tvDistance);
         tvCoordinates = findViewById(R.id.tvCoordinates);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setMax(1000);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         myLocListener = new MyLocListener();
         myLocListener.setLocListenerInterface(this);

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GpsTracker</string>
+    <string name="dialog_title">Расстояние</string>
+    <string name="dialog_btn">Готово</string>
 </resources>
