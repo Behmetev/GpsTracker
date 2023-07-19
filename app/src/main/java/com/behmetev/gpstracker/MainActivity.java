@@ -11,36 +11,68 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import org.osmdroid.api.IMapController;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Polyline;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity implements LocListenerInterface {
     private TextView tvDistance;
     private TextView tvVelocity;
     private TextView tvCoordinates;
     private Location lastLocation;
+    private GeoPoint startLocation;
     private int distance;
+    private List<GeoPoint> geoPoints;
     private MyLocListener myLocListener;
     private LocationManager locationManager;
-    private ProgressBar progressBar;
+    private MapView map;
+    private IMapController mapController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Configuration.getInstance().setUserAgentValue(getPackageName());
         setContentView(R.layout.activity_main);
         init();
     }
 
     protected void init() {
+        map = findViewById(R.id.mapview);
+        map.setTileSource(TileSourceFactory.MAPNIK);
+        map.setMultiTouchControls(true);
+        geoPoints = new ArrayList<>();
+
+        mapController = map.getController();
+        mapController.setZoom(17);
+        mapController.setCenter(new GeoPoint(51.7125, 39.1604));
+
+
         tvVelocity = findViewById(R.id.tvVelocity);
         tvDistance = findViewById(R.id.tvDistance);
         tvCoordinates = findViewById(R.id.tvCoordinates);
-        progressBar = findViewById(R.id.progressBar);
-        progressBar.setMax(1000);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         myLocListener = new MyLocListener();
         myLocListener.setLocListenerInterface(this);
         checkPermissions();
+    }
+
+    public void onResume() {
+        super.onResume();
+        map.onResume();
+    }
+
+    public void onPause() {
+        super.onPause();
+        map.onPause();
     }
 
     @Override
@@ -66,10 +98,32 @@ public class MainActivity extends AppCompatActivity implements LocListenerInterf
 
     @Override
     public void onLocationChanged(Location location) {
+
+
         if (location.hasSpeed() && lastLocation != null) {
             distance += lastLocation.distanceTo(location);
+            geoPoints.add(new GeoPoint(location.getLatitude(),location.getLongitude()));
+            mapController.setCenter(new GeoPoint(location.getLatitude(),location.getLongitude()));
+            //items.add(new OverlayItem("Title", "Description", new GeoPoint(location.getLatitude(),location.getLongitude()))); // Lat/Lon decimal degrees
         }
+
+        Polyline line = new Polyline();   //see note below!
+        line.setPoints(geoPoints);
+        map.getOverlayManager().add(line);
+/*
+        Marker startMarker = new Marker(map);
+        startMarker.setPosition(new GeoPoint(51.7125, 39.1604));
+        startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+        map.getOverlays().add(startMarker);
+*/
+
+
         lastLocation = location;
+        GeoPoint startPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+
+
+
+
         tvCoordinates.setText(location.getLatitude() + " " + location.getLongitude());
         tvDistance.setText(String.valueOf(distance));
         tvVelocity.setText(String.valueOf(location.getSpeed()));
